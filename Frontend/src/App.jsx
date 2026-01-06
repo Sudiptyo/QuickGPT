@@ -5,12 +5,20 @@ import Loading from "./Pages/Loading";
 import Credits from "./Pages/Credits";
 import Community from "./Pages/Community";
 import Login from "./Pages/Login";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { assets } from "./assets/assets";
-import './assets/prism.css';
+import "./assets/prism.css";
+import { useAppContext } from "./Context/AppContext";
 
 const App = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { pathname } = useLocation();
+
+  const { user } = useAppContext();
+
+  if (pathname === "/loading") {
+    return <Loading />;
+  }
   return (
     <>
       {!isMenuOpen && (
@@ -21,18 +29,25 @@ const App = () => {
           onClick={() => setIsMenuOpen(true)}
         />
       )}
-      <div className="dark:bg-linear-to-b from-[#242124] to-[#000000] dark:text-white">
-        <div className="flex h-screen w-screen">
-          <SideBar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
-          <Routes>
-            <Route path="/" element={<ChatBot />} />
-            <Route path="/loading" element={<Loading />} />
-            <Route path="/credits" element={<Credits />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/login" element={<Login />} />
-          </Routes>
+
+      {user ? (
+        <div className="dark:bg-linear-to-b from-[#242124] to-[#000000] dark:text-white">
+          <div className="flex h-screen w-screen">
+            <SideBar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+            <Routes>
+              <Route path="/" element={<ChatBot />} />
+              <Route path="/loading" element={<Loading />} />
+              <Route path="/credits" element={<Credits />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/login" element={<Login />} />
+            </Routes>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-linear-to-b from-[#242124] to-[#000000] flex items-center justify-center w-screen h-screen">
+          <Login />
+        </div>
+      )}
     </>
   );
 };
