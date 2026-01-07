@@ -4,7 +4,7 @@ const Login = () => {
   const [state, setState] = useState("login");
 
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
   });
@@ -50,7 +50,7 @@ const Login = () => {
               name="name"
               placeholder="Name"
               className="border-none outline-none ring-0"
-              value={formData.name}
+              value={formData.username}
               onChange={handleChange}
               required
             />
