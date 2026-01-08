@@ -24,6 +24,10 @@ const userSchema = new Schema({
         min: 6,
         max: 15
     },
+    credits: {
+        type: Number,
+        default: 20
+    },
     refreshToken: {
         type: String
     }
