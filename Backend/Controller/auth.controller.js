@@ -199,4 +199,25 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 })
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken }
+const getUser = asyncHandler(async (req, res) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
+        return res.status(200).json({
+            success: true,
+            data: user
+        })
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        })
+    }
+})
+
+export { registerUser, loginUser, logoutUser, refreshAccessToken, getUser }
