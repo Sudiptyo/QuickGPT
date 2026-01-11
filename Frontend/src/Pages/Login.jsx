@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAppContext } from "../Context/AppContext";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [state, setState] = useState("login");
+  const { axios, fetchUser, user, loadingUser } = useAppContext();
 
   const [formData, setFormData] = useState({
     username: "",
@@ -9,13 +13,52 @@ const Login = () => {
     password: "",
   });
 
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loadingUser && user) {
+      navigate("/", { replace: true });
+    }
+  }, [user, loadingUser, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const url =
+      state === "login" ? "/api/v1/users/login" : "/api/v1/users/register";
+    try {
+      const { data } = await axios.post(url, formData);
+      if (data?.success) {
+        setFormData({
+          username: "",
+          email: "",
+          password: "",
+        });
+
+        toast.success(data?.message);
+        if (state === "register") {
+          setState("login");
+          navigate("/login");
+        }
+        await fetchUser();
+        // navigate("/", { replace: true });
+      } else {
+        toast.error(data?.message);
+      }
+    } catch (err) {
+      setFormData({
+        username: "",
+        email: "",
+        password: "",
+      });
+
+      toast.error(err.message);
+    }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    console.log(name, value);
   };
 
   return (
@@ -47,7 +90,7 @@ const Login = () => {
             </svg>
             <input
               type="text"
-              name="name"
+              name="username"
               placeholder="Name"
               className="border-none outline-none ring-0"
               value={formData.username}

@@ -1,5 +1,5 @@
-import { Chat } from "../Models/chat.models.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { Chat } from "../../Models/chat.models.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
 
 const createChat = asyncHandler(async (req, res) => {
     const userId = req.user?._id
@@ -15,7 +15,7 @@ const createChat = asyncHandler(async (req, res) => {
     const chatData = {
         user: userId,
         userName: req.user?.username,
-        chatName: req.body.chatName || "New Chat",
+        chatName: req.body?.chatName || "New Chat",
         messages: []
     }
 
@@ -48,10 +48,12 @@ const getChatData = asyncHandler(async (req, res) => {
 
     const chats = await Chat.find({ user: userId }).sort({ createdAt: -1 })
     if (chats.length === 0) {
-        return res.status(404).json({
-            success: false,
-            message: "No chats found"
-        })
+        return res.status(200).json({
+            success: true,
+            message: "Chats retrieved successfully",
+            data: chats,
+        });
+
     }
 
     return res.status(200).json({

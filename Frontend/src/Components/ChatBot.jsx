@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { useAppContext } from "../Context/AppContext";
 import { assets } from "../assets/assets";
 import Message from "./Message";
+import toast from "react-hot-toast";
 
 const ChatBot = () => {
-  const { selectedChat, theme } = useAppContext();
+  const { selectedChat, theme, user, axios, setUser } = useAppContext();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [prompt, setPrompt] = useState("");
@@ -13,8 +14,55 @@ const ChatBot = () => {
 
   const containerRef = useRef(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      if (!user) return toast("Login to use chatbot");
+      setLoading(true);
+
+      if (!selectedChat?._id) {
+        return toast.error("Please select or create a chat first");
+      }
+
+      const userPrompt = prompt;
+
+      // optimistic UI
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: userPrompt, timestamp: Date.now() },
+      ]);
+
+      setPrompt(""); // clear input AFTER storing value
+
+      const { data } = await axios.post(`/api/v1/messages/${mode}`, {
+        chatId: selectedChat._id,
+        prompt: userPrompt, // ✅ ALWAYS correct
+        isPublished,
+      });
+
+      console.log("Selected Chat:", selectedChat);
+      console.log("Chat ID:", selectedChat?._id);
+
+      if (data?.success) {
+        toast.success(data.message);
+
+        setMessages((prev) => [...prev, data.data]);
+
+        setUser((prev) => ({
+          ...prev,
+          credits: data.credits,
+        }));
+      }
+    } catch (err) {
+      setMessages((prev) => prev.slice(0, -1));
+      console.log("Chatbot error:", err);
+
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -81,7 +129,7 @@ const ChatBot = () => {
 
         {/* Prompt Input Box */}
         <form
-          onClick={handleSubmit}
+          onSubmit={handleSubmit}
           className="bg-primary/20 dark:bg-[#583C79]/30 border border-primary dark:border-[#80609F]/30 rounded-full w-full max-w-2xl p-3 pl-4 mx-auto flex gap-4 items-center"
           action=""
         >

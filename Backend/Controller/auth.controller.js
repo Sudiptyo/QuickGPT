@@ -1,6 +1,7 @@
 import { User } from "../Models/auth.models.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
+import { Chat } from "../Models/chat.models.js";
 
 const options = {
     httpOnly: true,
@@ -220,4 +221,34 @@ const getUser = asyncHandler(async (req, res) => {
     }
 })
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken, getUser }
+const getPublishedImages = asyncHandler(async (req, res) => {
+    const userId = req.user?._id;
+    console.log("User Id: ", req.user?._id);
+
+    const publishedImageMessages = await Chat.aggregate([
+        {
+            $unwind: "$messages"
+        },
+        {
+            $match: {
+                "messages.isImage": true,
+                "messages.isPublished": true,
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                imageUrl: "$messages.content",
+                username: "$username",
+            }
+        }
+    ])
+
+    return res.status(200).json({
+        success: true,
+        data: publishedImageMessages.reverse()
+    })
+
+})
+
+export { registerUser, loginUser, logoutUser, refreshAccessToken, getUser, getPublishedImages }

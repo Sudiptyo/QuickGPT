@@ -1,20 +1,48 @@
 import React, { useEffect, useState } from "react";
 import { dummyPlans } from "../assets/assets";
 import Loading from "./Loading";
+import { useAppContext } from "../Context/AppContext";
+import toast from "react-hot-toast";
 
 const Credits = () => {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { axios } = useAppContext();
 
   const fetchPlans = async () => {
     try {
-      // const response = await fetch("API_ENDPOINT_HERE");
-      // const data = await response.json();
-      setPlans(dummyPlans);
+      const { data } = await axios.get("/api/v1/payment/get-plans");
+      if (data?.success) {
+        setPlans(data?.data);
+        setLoading(false);
+      } else {
+        toast.error(data?.message || "Failed to fetch plans");
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error("Error fetching plans:", err);
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      }
       setLoading(false);
-    } catch (error) {
-      console.error("Error fetching plans:", error);
-      setLoading(false);
+    }
+  };
+
+  const purchasePlan = async (planId) => {
+    try {
+      const { data } = await axios.post("/api/v1/payment/purchase-plan", {
+        planId,
+      });
+      if (data?.success) {
+        window.location.href = data?.paymentUrl;
+      } else {
+        toast.error(data?.message || "Failed to purchase plan");
+      }
+    } catch (err) {
+      console.log("Error Purchasing Plans: ", err);
+      if (err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      }
     }
   };
 
@@ -43,11 +71,11 @@ const Credits = () => {
               }`}
             >
               <div className="flex-1">
-                <h3 className="text-xl font-semibold text-white dark:tew mb-2">
+                <h3 className="text-xl font-semibold text-black dark:text-white dark:tew mb-2">
                   {plan.name}
                 </h3>
                 <p className="text-2xl font-bold text-purple-600 dark:text-pink-300 mb-4">
-                  ${plan.price}
+                  ₹{plan.price}
                   <span> / {plan.credits} Credits</span>
                 </p>
                 <ul className="list-disc list-inside text-sm text-gray-700 dark:text-purple-200 space-y-1">
@@ -56,7 +84,14 @@ const Credits = () => {
                   ))}
                 </ul>
               </div>
-              <button className="mt-6 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-medium py-2 rounded transition-colors cursor-pointer">
+              <button
+                onClick={() =>
+                  toast.promise(purchasePlan(plan._id), {
+                    loading: "Processing...",
+                  })
+                }
+                className="mt-6 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-medium py-2 rounded transition-colors cursor-pointer"
+              >
                 Subscribe
               </button>
             </div>

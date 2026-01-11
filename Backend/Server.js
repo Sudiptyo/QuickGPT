@@ -18,3 +18,14 @@ const startServer = async () => {
 }
 
 startServer();
+
+app.use((err, req, res, next) => {
+    console.error("🔥 GLOBAL ERROR HANDLER 🔥");
+    console.error(err);
+
+    res.status(err.statusCode || err.status || 500).json({
+        success: false,
+        message: err.message || "Internal Server Error",
+        error: err
+    });
+});
